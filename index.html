@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Custom Flex Sender</title>
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.5.0/sdk.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #f4f4f4;
+    }
+    textarea {
+      width: 98%;
+      height: 400px;
+      padding: 1rem;
+      font-family: monospace;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      background-color: #06c755;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #04a340;
+    }
+  </style>
+</head>
+<body>
+  <h2>Custom Flex JSON Sender</h2>
+  <p>Paste or edit your Flex Message JSON below:</p>
+  
+  <textarea id="flexInput">
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "Hello, World!"
+      }
+    ]
+  }
+}
+  </textarea>
+  <br />
+  <button onclick="shareCustomFlex()">🔗 Share Flex</button>
+
+  <script>
+    const mandatoryButton = {
+      type: "button",
+      style: "primary",
+      height: "sm",
+      margin: "md",
+      action: {
+        type: "uri",
+        label: "Share Flex Message",
+        uri: "https://liff.line.me/2006777381-brVzeK1o"
+      },
+      color: "#473d45"
+    };
+
+async function init() {
+  await liff.init({ liffId: "2006600165-BO5bEa30" });
+
+  if (!liff.isLoggedIn()) {
+    liff.login();
+    return;
+  }
+}
+
+
+    async function shareCustomFlex() {
+      try {
+        const raw = document.getElementById("flexInput").value.trim();
+        const flexJson = JSON.parse(raw);
+
+        if (!flexJson.footer) {
+          flexJson.footer = { type: "box", layout: "vertical", contents: [] };
+        }
+        if (!flexJson.footer.contents) {
+          flexJson.footer.contents = [];
+        }
+
+        const exists = flexJson.footer.contents.some(
+          item => item.type === "button" && item.action?.uri === mandatoryButton.action.uri
+        );
+        if (!exists) {
+          flexJson.footer.contents.push(mandatoryButton);
+        }
+
+        await liff.shareTargetPicker([
+          {
+            type: "flex",
+            altText: "Custom Flex Message",
+            contents: flexJson
+          }
+        ]);
+      } catch (error) {
+        alert("❌ JSON format error or LIFF issue: " + error);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
